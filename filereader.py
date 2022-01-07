@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 from pathlib import Path
 
 
@@ -42,3 +43,6 @@ def search_replace(plugin_name):
     else:
         print("No files modified")
 
+
+if __name__ == '__main__':
+    globals()[sys.argv[1]](sys.argv[2])
