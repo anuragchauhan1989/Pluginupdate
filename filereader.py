@@ -3,12 +3,13 @@ import os
 from pathlib import Path
 
 
-def find_all_files(name, path):
-    result = []
-    for root, dirs, files in os.walk(path):
-        if name in files:
-            result.append(os.path.join(root, name))
-    return result
+def find_all_files(plugin_name):
+    filenames = []
+    path = Path.cwd().joinpath('Data').joinpath(plugin_name)
+    for dir_path, _, file_names in os.walk(path):
+        for f in file_names:
+            filenames.append(os.path.abspath(os.path.join(dir_path, f)))
+    return filenames
 
 
 def read_test_data():
@@ -18,20 +19,26 @@ def read_test_data():
     return test_data
 
 
-def search_replace():
-    dir_path = os.path.dirname(os.path.realpath(__file__))
+def search_replace(plugin_name):
+    no_of_replaced_files = 0
     test_data = read_test_data()
     for data in test_data:
-        result = find_all_files(data['fileName'], dir_path)
-        for x in result:
-            path = Path(x)
-            with open(x, 'r') as fileRead:
-                fileData = fileRead.read()
-                if data['previousString'] in fileData:
+        file_names = find_all_files(plugin_name)
+        for file in file_names:
+            path = Path(file)
+            with open(path, 'r', errors="ignore") as read_file:
+                file_data = read_file.read()
+                if data['previousString'] in file_data:
                     # Replace the target string
-                    fileData = fileData.replace(data['previousString'], data['newString'])
+                    file_data = file_data.replace(data['previousString'], data['newString'])
                     # Write the file out again
-                    with open(path, 'w') as fileWrite:
-                        fileWrite.write(fileData)
-                    print("data replaced in: ", data['fileName'], "with previous string as", data['previousString'],
+                    with open(path, 'w') as write_file:
+                        write_file.write(file_data)
+                    print("data replaced in the path:", path, "with previous string as", data['previousString'],
                           "to new string as", data['newString'])
+                    no_of_replaced_files = no_of_replaced_files + 1
+    if no_of_replaced_files > 0:
+        print("Replaced in", no_of_replaced_files, "files")
+    else:
+        print("No files modified")
+
